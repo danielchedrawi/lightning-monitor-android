@@ -89,7 +89,7 @@
             android:layout_weight="1"
             android:text="ESTACIÓN ANTERIOR"
             android:textSize="10sp"
-            android:enabled="false" />
+     />
 
         <TextView
             android:id="@+id/stationIndicator"
