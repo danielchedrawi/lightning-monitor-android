@@ -32,9 +32,10 @@ public class MainActivity extends Activity {
     private TextView alarmStatus;
     private TextView lastIssued;
     private TextView lastUpdated;
+    private TextView stationHeader;
+    private TextView stationIndicator;
+    private TextView stationDots;
     private Switch alertSwitch;
-    private Button sfl8Tab;
-    private Button sfl1Tab;
 
     private boolean sfl8Closed = false;
     private boolean sfl1Closed = false;
@@ -78,16 +79,12 @@ public class MainActivity extends Activity {
         lastUpdated = findViewById(R.id.lastUpdated);
         alertSwitch = findViewById(R.id.alertSwitch);
 
-        sfl8Tab = findViewById(R.id.sfl8Tab);
-        sfl1Tab = findViewById(R.id.sfl1Tab);
         webActive = findViewById(R.id.webActive);
 
         tone = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
 
         configureWebView();
 
-        sfl8Tab.setOnClickListener(v -> switchStation("SFL8"));
-        sfl1Tab.setOnClickListener(v -> switchStation("SFL1"));
 
         alertSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             alarmsEnabled = isChecked;
@@ -103,10 +100,27 @@ public class MainActivity extends Activity {
         Button testButton = findViewById(R.id.testButton);
         testButton.setOnClickListener(v -> triggerAlarm("PRUEBA DE ALARMA"));
 
-        updateTabs();
+        stationHeader = findViewById(R.id.stationHeader);
+        stationIndicator = findViewById(R.id.stationIndicator);
+        stationDots = findViewById(R.id.stationDots);
+
+        Button prevButton = findViewById(R.id.prevButton);
+        Button nextButton = findViewById(R.id.nextButton);
+
+        prevButton.setOnClickListener(v -> switchStation("SFL8"));
+        nextButton.setOnClickListener(v -> switchStation("SFL1"));
+
         loadStation("SFL8");
+        updateStationNavigation();
 
         handler.postDelayed(fallbackPoller, 8000);
+    }
+
+    private void updateStationNavigation() {
+        boolean sfl8 = activeSite.equals("SFL8");
+        stationHeader.setText(activeSite);
+        stationIndicator.setText(sfl8 ? "Estación 1 de 2" : "Estación 2 de 2");
+        stationDots.setText(sfl8 ? "●  ○" : "○  ●");
     }
 
     private void configureWebView() {
@@ -139,33 +153,15 @@ public class MainActivity extends Activity {
     private void switchStation(String site) {
         if (site.equals(activeSite)) return;
 
-        stopAlarm();
-
         activeSite = site;
 
-        lastIssued.setText("Issued at: —");
-        lastUpdated.setText("Updated at: —");
-
-        updateTabs();
-        loadStation(site);
-    }
-
-    private void loadStation(String site) {
-        if (site.equals("SFL8")) {
+        if (activeSite.equals("SFL8")) {
             webActive.loadUrl(SFL8_URL);
         } else {
             webActive.loadUrl(SFL1_URL);
         }
-    }
 
-    private void updateTabs() {
-        if (activeSite.equals("SFL8")) {
-            sfl8Tab.setBackgroundColor(Color.rgb(23, 107, 44));
-            sfl1Tab.setBackgroundColor(Color.rgb(35, 35, 35));
-        } else {
-            sfl1Tab.setBackgroundColor(Color.rgb(23, 107, 44));
-            sfl8Tab.setBackgroundColor(Color.rgb(35, 35, 35));
-        }
+        updateStationNavigation();
     }
 
     private void installRealtimeObserver(WebView web) {
