@@ -1,99 +1,200 @@
 package com.lightningmonitor;
 
-import android.media.AudioManager;
-import android.media.ToneGenerator;
+import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.graphics.Color;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
+import android.media.ToneGenerator;
+import android.media.AudioManager;
 
-public class MainActivity extends AppCompatActivity {
-    private WebView web8, web1;
-    private TextView sfl8, sfl1, event, status;
-    private Handler handler = new Handler();
-    private boolean wasClosed8=false, wasClosed1=false;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
-    private final String URL8="https://us.kepler51.com/facilitymonitoring/#/yardmonitoring/amazon/SFL8?activeComponent=Yard+Monitoring+Widgets";
-    private final String URL1="https://us.kepler51.com/facilitymonitoring/#/yardmonitoring/amazon/SFL1?activeComponent=Yard+Monitoring+Widgets";
+public class MainActivity extends Activity {
 
-    @Override public void onCreate(Bundle b) {
-        super.onCreate(b);
+    private static final String SFL8_URL =
+            "https://us.kepler51.com/facilitymonitoring/#/yardmonitoring/amazon/SFL8?activeComponent=Yard+Monitoring+Widgets";
+
+    private static final String SFL1_URL =
+            "https://us.kepler51.com/facilitymonitoring/#/yardmonitoring/amazon/SFL1?activeComponent=Yard+Monitoring+Widgets";
+
+    private WebView webSfl8;
+    private WebView webSfl1;
+    private TextView alarmStatus;
+    private TextView sfl8Last;
+    private TextView sfl1Last;
+    private Switch alertSwitch;
+
+    private boolean sfl8Closed = false;
+    private boolean sfl1Closed = false;
+    private boolean alarmsEnabled = true;
+    private boolean alarmActive = false;
+
+    private final Handler handler = new Handler();
+    private ToneGenerator tone;
+
+    private final Runnable poller = new Runnable() {
+        @Override
+        public void run() {
+            checkState(webSfl8, "SFL8");
+            checkState(webSfl1, "SFL1");
+            handler.postDelayed(this, 5000);
+        }
+    };
+
+    private final Runnable alarmSound = new Runnable() {
+        @Override
+        public void run() {
+            if (alarmActive) {
+                if (tone != null) {
+                    tone.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 700);
+                }
+                handler.postDelayed(this, 1400);
+            }
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        web8=findViewById(R.id.web8); web1=findViewById(R.id.web1);
-        sfl8=findViewById(R.id.sfl8); sfl1=findViewById(R.id.sfl1);
-        event=findViewById(R.id.event); status=findViewById(R.id.status);
-        setup(web8, URL8); setup(web1, URL1);
-        handler.postDelayed(this::poll, 8000);
+
+        alarmStatus = findViewById(R.id.alarmStatus);
+        sfl8Last = findViewById(R.id.sfl8Last);
+        sfl1Last = findViewById(R.id.sfl1Last);
+        alertSwitch = findViewById(R.id.alertSwitch);
+
+        webSfl8 = findViewById(R.id.webSfl8);
+        webSfl1 = findViewById(R.id.webSfl1);
+
+        tone = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+
+        configureWebView(webSfl8, SFL8_URL);
+        configureWebView(webSfl1, SFL1_URL);
+
+        alertSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            alarmsEnabled = isChecked;
+            if (!isChecked) {
+                stopAlarm();
+                alarmStatus.setText("MONITOREANDO — Alertas desactivadas");
+                alarmStatus.setBackgroundColor(Color.DKGRAY);
+            } else {
+                alarmStatus.setText("MONITOREANDO — Alertas activadas");
+                alarmStatus.setBackgroundColor(Color.rgb(23, 107, 44));
+            }
+        });
+
+        Button testButton = findViewById(R.id.testButton);
+        testButton.setOnClickListener(v -> triggerAlarm("PRUEBA DE ALARMA"));
+
+        handler.postDelayed(poller, 8000);
     }
 
-    private void setup(WebView w, String url) {
-        WebSettings st=w.getSettings();
+    private void configureWebView(WebView w, String url) {
+        WebSettings st = w.getSettings();
         st.setJavaScriptEnabled(true);
         st.setDomStorageEnabled(true);
         st.setDatabaseEnabled(true);
         st.setLoadsImagesAutomatically(true);
         st.setLoadWithOverviewMode(true);
         st.setUseWideViewPort(true);
-        st.setTextZoom(75);
-        w.setInitialScale(75);
-        w.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                view.evaluateJavascript(
-                    "(function(){document.documentElement.style.zoom='0.65';" +
-                    "document.body.style.zoom='0.65';})();",
-                    null
-                );
-            }
-        });
+        st.setTextZoom(85);
+        w.setInitialScale(85);
+
+        w.setWebViewClient(new WebViewClient());
         w.loadUrl(url);
     }
 
-    private void poll() {
-        scan(web8, "SFL8");
-        scan(web1, "SFL1");
-        handler.postDelayed(this::poll, 5000);
+    private void checkState(WebView web, String site) {
+        web.evaluateJavascript(
+                "(function(){return document.body ? document.body.innerText : '';})()",
+                value -> {
+                    if (value == null) return;
+
+                    String text = value
+                            .replace("\\n", " ")
+                            .replace("\\\"", "\"")
+                            .toUpperCase(Locale.US);
+
+                    boolean closed = text.contains("CLOSED");
+
+                    if (site.equals("SFL8")) {
+                        if (closed && !sfl8Closed) {
+                            sfl8Last.setText("Último CLOSED: " + now());
+                            if (alarmsEnabled) triggerAlarm("SFL8 — CLOSED");
+                        }
+                        sfl8Closed = closed;
+                    } else {
+                        if (closed && !sfl1Closed) {
+                            sfl1Last.setText("Último CLOSED: " + now());
+                            if (alarmsEnabled) triggerAlarm("SFL1 — CLOSED");
+                        }
+                        sfl1Closed = closed;
+                    }
+                }
+        );
     }
 
-    private void scan(WebView w, String site) {
-        w.evaluateJavascript("(function(){return document.body?document.body.innerText:'';})()", value -> {
-            if(value==null) return;
-            String t=value.toUpperCase();
-            boolean closed=t.contains("CLOSED");
-            boolean warning=t.contains("WARNING");
-            boolean open=t.contains("OPEN");
-            update(site, closed, warning, open);
-            if(site.equals("SFL8")) {
-                if(closed && !wasClosed8) { wasClosed8=true; alert(site); }
-                if(!closed) wasClosed8=false;
-            } else {
-                if(closed && !wasClosed1) { wasClosed1=true; alert(site); }
-                if(!closed) wasClosed1=false;
-            }
-        });
+    private String now() {
+        return new SimpleDateFormat("HH:mm:ss", Locale.US).format(new Date());
     }
 
-    private void update(String site, boolean closed, boolean warning, boolean open) {
-        String state=closed?"CLOSED":warning?"WARNING":open?"OPEN":"UNKNOWN";
-        TextView v=site.equals("SFL8")?sfl8:sfl1;
-        v.setText(site+" — "+state);
-        if(closed) v.setBackgroundColor(Color.rgb(155,17,30));
-        else if(warning) v.setBackgroundColor(Color.rgb(91,23,32));
-        else if(open) v.setBackgroundColor(Color.rgb(22,60,42));
-        else v.setBackgroundColor(Color.rgb(41,49,64));
-        status.setText("Última revisión: "+android.text.format.DateFormat.format("hh:mm:ss a", System.currentTimeMillis()));
+    private void triggerAlarm(String message) {
+        alarmActive = true;
+        alarmStatus.setText("🔴 ALERTA: " + message);
+        alarmStatus.setBackgroundColor(Color.RED);
+
+        findViewById(R.id.root).setBackgroundColor(Color.RED);
+
+        handler.removeCallbacks(alarmSound);
+        handler.post(alarmSound);
     }
 
-    private void alert(String site) {
-        getWindow().getDecorView().setBackgroundColor(Color.rgb(155,17,30));
-        event.setText("⚡ "+site+" — CLOSED detectado: "+
-                android.text.format.DateFormat.format("hh:mm:ss a", System.currentTimeMillis()));
-        ToneGenerator tg=new ToneGenerator(AudioManager.STREAM_ALARM,100);
-        tg.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,1200);
+    private void stopAlarm() {
+        alarmActive = false;
+        handler.removeCallbacks(alarmSound);
+
+        if (tone != null) {
+            tone.stopTone();
+        }
+
+        alarmStatus.setText(alarmsEnabled
+                ? "MONITOREANDO — Alertas activadas"
+                : "MONITOREANDO — Alertas desactivadas");
+
+        alarmStatus.setBackgroundColor(
+                alarmsEnabled ? Color.rgb(23, 107, 44) : Color.DKGRAY
+        );
+
+        findViewById(R.id.root).setBackgroundColor(Color.rgb(16, 16, 16));
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (alarmActive) {
+            stopAlarm();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+
+        if (tone != null) {
+            tone.release();
+            tone = null;
+        }
+
+        super.onDestroy();
     }
 }
