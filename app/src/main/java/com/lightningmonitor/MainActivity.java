@@ -114,24 +114,24 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
 
                 String desktopCanvas = "(function(){"
-                        + "var m=document.querySelector('meta[name=viewport]');"
-                        + "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}"
-                        + "m.setAttribute('content','width=1200, initial-scale=1, maximum-scale=1, user-scalable=no');"
-                        + "function fit(){"
-                        + "var w=1200;"
-                        + "var screenW=screen.width||window.innerWidth;"
-                        + "var scale=screenW/w;"
-                        + "document.documentElement.style.width=w+'px';"
-                        + "document.documentElement.style.overflowX='hidden';"
-                        + "document.body.style.width=w+'px';"
-                        + "document.body.style.margin='0';"
-                        + "document.body.style.zoom=scale;"
-                        + "}"
-                        + "fit();"
-                        + "setTimeout(fit,1000);"
-                        + "setTimeout(fit,3000);"
-                        + "setTimeout(fit,6000);"
-                        + "})();";
+        + "function fit(){"
+        + "var screenW=window.innerWidth;"
+        + "var contentW=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);"
+        + "if(contentW<screenW) contentW=screenW;"
+        + "var scale=screenW/contentW;"
+        + "document.documentElement.style.width=contentW+'px';"
+        + "document.body.style.width=contentW+'px';"
+        + "document.body.style.margin='0';"
+        + "document.body.style.transformOrigin='0 0';"
+        + "document.body.style.zoom=scale;"
+        + "document.documentElement.style.overflowX='hidden';"
+        + "document.body.style.overflowX='hidden';"
+        + "}"
+        + "fit();"
+        + "setTimeout(fit,1000);"
+        + "setTimeout(fit,3000);"
+        + "setTimeout(fit,6000);"
+        + "})();";
 
                 view.evaluateJavascript(desktopCanvas, null);
             }
