@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
         // sin aplicar un zoom artificial.
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
-        settings.setTextZoom(120);
+        settings.setTextZoom(100);
         settings.setSupportZoom(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
@@ -114,18 +114,22 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
 
                 String desktopCanvas = "(function(){"
+        + "var m=document.querySelector('meta[name=viewport]');"
+        + "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}"
+        + "m.setAttribute('content','width=1200, initial-scale=1, maximum-scale=1, user-scalable=no');"
         + "function fit(){"
-        + "var screenW=window.innerWidth;"
-        + "var contentW=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);"
-        + "if(contentW<screenW) contentW=screenW;"
-        + "var scale=screenW/contentW;"
-        + "document.documentElement.style.width=contentW+'px';"
-        + "document.body.style.width=contentW+'px';"
+        + "var desktopW=1200;"
+        + "var phoneW=document.documentElement.clientWidth;"
+        + "var scale=phoneW/desktopW;"
+        + "document.documentElement.style.width=desktopW+'px';"
+        + "document.body.style.width=desktopW+'px';"
         + "document.body.style.margin='0';"
         + "document.body.style.transformOrigin='0 0';"
-        + "document.body.style.zoom=scale;"
+        + "document.body.style.transform='scale('+scale+')';"
+        + "document.body.style.zoom='';"
         + "document.documentElement.style.overflowX='hidden';"
         + "document.body.style.overflowX='hidden';"
+        + "document.body.style.minHeight=(document.body.scrollHeight*scale)+'px';"
         + "}"
         + "fit();"
         + "setTimeout(fit,1000);"
