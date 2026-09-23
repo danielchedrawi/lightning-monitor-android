@@ -2,22 +2,23 @@ package com.lightningmonitor;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.JavascriptInterface;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.media.ToneGenerator;
-import android.media.AudioManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
@@ -27,17 +28,19 @@ public class MainActivity extends Activity {
     private static final String SFL1_URL =
             "https://us.kepler51.com/facilitymonitoring/#/yardmonitoring/amazon/SFL1?activeComponent=Yard+Monitoring+Widgets";
 
-    private WebView webSfl8;
-    private WebView webSfl1;
+    private WebView webActive;
     private TextView alarmStatus;
-    private TextView sfl8Last;
-    private TextView sfl1Last;
+    private TextView lastIssued;
+    private TextView lastUpdated;
     private Switch alertSwitch;
+    private Button sfl8Tab;
+    private Button sfl1Tab;
 
     private boolean sfl8Closed = false;
     private boolean sfl1Closed = false;
     private boolean alarmsEnabled = true;
     private boolean alarmActive = false;
+    private String activeSite = "SFL8";
 
     private final Handler handler = new Handler();
     private ToneGenerator tone;
@@ -45,8 +48,7 @@ public class MainActivity extends Activity {
     private final Runnable fallbackPoller = new Runnable() {
         @Override
         public void run() {
-            checkState(webSfl8, "SFL8");
-            checkState(webSfl1, "SFL1");
+            checkState(webActive, activeSite);
             handler.postDelayed(this, 30000);
         }
     };
@@ -56,7 +58,10 @@ public class MainActivity extends Activity {
         public void run() {
             if (alarmActive) {
                 if (tone != null) {
-                    tone.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 700);
+                    tone.startTone(
+                            ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,
+                            700
+                    );
                 }
                 handler.postDelayed(this, 1400);
             }
@@ -69,24 +74,26 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         alarmStatus = findViewById(R.id.alarmStatus);
-        sfl8Last = findViewById(R.id.sfl8Last);
-        sfl1Last = findViewById(R.id.sfl1Last);
+        lastIssued = findViewById(R.id.lastIssued);
+        lastUpdated = findViewById(R.id.lastUpdated);
         alertSwitch = findViewById(R.id.alertSwitch);
 
-        webSfl8 = findViewById(R.id.webSfl8);
-        webSfl1 = findViewById(R.id.webSfl1);
+        sfl8Tab = findViewById(R.id.sfl8Tab);
+        sfl1Tab = findViewById(R.id.sfl1Tab);
+        webActive = findViewById(R.id.webActive);
 
         tone = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
 
-        configureWebView(webSfl8, SFL8_URL);
-        configureWebView(webSfl1, SFL1_URL);
+        configureWebView();
+
+        sfl8Tab.setOnClickListener(v -> switchStation("SFL8"));
+        sfl1Tab.setOnClickListener(v -> switchStation("SFL1"));
 
         alertSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             alarmsEnabled = isChecked;
+
             if (!isChecked) {
                 stopAlarm();
-                alarmStatus.setText("MONITOREANDO — Alertas desactivadas");
-                alarmStatus.setBackgroundColor(Color.DKGRAY);
             } else {
                 alarmStatus.setText("MONITOREANDO — Alertas activadas");
                 alarmStatus.setBackgroundColor(Color.rgb(23, 107, 44));
@@ -96,11 +103,15 @@ public class MainActivity extends Activity {
         Button testButton = findViewById(R.id.testButton);
         testButton.setOnClickListener(v -> triggerAlarm("PRUEBA DE ALARMA"));
 
+        updateTabs();
+        loadStation("SFL8");
+
         handler.postDelayed(fallbackPoller, 8000);
     }
 
-    private void configureWebView(WebView w, String url) {
-        WebSettings st = w.getSettings();
+    private void configureWebView() {
+        WebSettings st = webActive.getSettings();
+
         st.setJavaScriptEnabled(true);
         st.setDomStorageEnabled(true);
         st.setDatabaseEnabled(true);
@@ -108,96 +119,213 @@ public class MainActivity extends Activity {
         st.setLoadWithOverviewMode(true);
         st.setUseWideViewPort(true);
         st.setTextZoom(85);
-        w.setInitialScale(85);
 
-        String site = url.contains("/SFL8") ? "SFL8" : "SFL1";
-        w.addJavascriptInterface(new KeplerBridge(site), "Android");
+        webActive.setInitialScale(85);
 
-        w.setWebViewClient(new WebViewClient() {
+        webActive.addJavascriptInterface(
+                new KeplerBridge(),
+                "Android"
+        );
+
+        webActive.setWebViewClient(new WebViewClient() {
             @Override
-            public void onPageFinished(WebView view, String pageUrl) {
-                installRealtimeObserver(view, site);
-                checkState(view, site);
+            public void onPageFinished(WebView view, String url) {
+                installRealtimeObserver(view);
+                checkState(view, activeSite);
             }
         });
-
-        w.loadUrl(url);
     }
 
-    private void installRealtimeObserver(WebView web, String site) {
-        String js = "(function(){"
-                + "if(window.__lightningObserver){window.__lightningObserver.disconnect();}"
+    private void switchStation(String site) {
+        if (site.equals(activeSite)) return;
+
+        stopAlarm();
+
+        activeSite = site;
+
+        lastIssued.setText("Issued at: —");
+        lastUpdated.setText("Updated at: —");
+
+        updateTabs();
+        loadStation(site);
+    }
+
+    private void loadStation(String site) {
+        if (site.equals("SFL8")) {
+            webActive.loadUrl(SFL8_URL);
+        } else {
+            webActive.loadUrl(SFL1_URL);
+        }
+    }
+
+    private void updateTabs() {
+        if (activeSite.equals("SFL8")) {
+            sfl8Tab.setBackgroundColor(Color.rgb(23, 107, 44));
+            sfl1Tab.setBackgroundColor(Color.rgb(35, 35, 35));
+        } else {
+            sfl1Tab.setBackgroundColor(Color.rgb(23, 107, 44));
+            sfl8Tab.setBackgroundColor(Color.rgb(35, 35, 35));
+        }
+    }
+
+    private void installRealtimeObserver(WebView web) {
+        String js =
+                "(function(){"
+                + "if(window.__lightningObserver){"
+                + "window.__lightningObserver.disconnect();"
+                + "}"
                 + "var target=document.body||document.documentElement;"
                 + "if(!target)return;"
                 + "var timer;"
                 + "function send(){"
                 + "clearTimeout(timer);"
                 + "timer=setTimeout(function(){"
-                + "try{if(window.Android){window.Android.state('" + site + "',document.body?document.body.innerText:'');}}catch(e){}"
+                + "try{"
+                + "if(window.Android){"
+                + "window.Android.state("
+                + "document.body?document.body.innerText:''"
+                + ");"
+                + "}"
+                + "}catch(e){}"
                 + "},250);"
                 + "}"
-                + "window.__lightningObserver=new MutationObserver(function(){send();});"
-                + "window.__lightningObserver.observe(target,{subtree:true,childList:true,characterData:true,attributes:true});"
+                + "window.__lightningObserver="
+                + "new MutationObserver(function(){send();});"
+                + "window.__lightningObserver.observe("
+                + "target,"
+                + "{subtree:true,childList:true,"
+                + "characterData:true,attributes:true}"
+                + ");"
                 + "send();"
-                + "return 'ok';})()";
+                + "})()";
 
         web.evaluateJavascript(js, value -> {});
     }
 
     private class KeplerBridge {
-        private final String site;
-
-        KeplerBridge(String site) {
-            this.site = site;
-        }
 
         @JavascriptInterface
-        public void state(String ignoredSite, String text) {
-            runOnUiThread(() -> processText(site, text));
+        public void state(String text) {
+            runOnUiThread(() -> processText(activeSite, text));
         }
     }
 
     private void processText(String site, String rawText) {
         if (rawText == null) return;
 
-        String text = rawText.toUpperCase(Locale.US);
-        boolean closed = text.contains("CLOSED");
+        String text = rawText.replace('\u00A0', ' ');
+
+        String upper = text.toUpperCase(Locale.US);
+
+        boolean closed = upper.contains("CLOSED");
+
+        String issued = extractValue(
+                text,
+                "Issued\\s+at\\s*:?\\s*([^\\r\\n]+)"
+        );
+
+        String updated = extractValue(
+                text,
+                "Updated\\s+at\\s*:?\\s*([^\\r\\n]+)"
+        );
 
         if (site.equals("SFL8")) {
+
             if (closed && !sfl8Closed) {
-                sfl8Last.setText("Último CLOSED: " + now());
-                if (alarmsEnabled) triggerAlarm("SFL8 — CLOSED");
+                if (issued != null) {
+                    lastIssued.setText("Issued at: " + cleanTime(issued));
+                }
+
+                if (updated != null) {
+                    lastUpdated.setText("Updated at: " + cleanTime(updated));
+                }
+
+                if (alarmsEnabled) {
+                    triggerAlarm("SFL8 — CLOSED");
+                }
             }
+
             sfl8Closed = closed;
+
         } else {
+
             if (closed && !sfl1Closed) {
-                sfl1Last.setText("Último CLOSED: " + now());
-                if (alarmsEnabled) triggerAlarm("SFL1 — CLOSED");
+                if (issued != null) {
+                    lastIssued.setText("Issued at: " + cleanTime(issued));
+                }
+
+                if (updated != null) {
+                    lastUpdated.setText("Updated at: " + cleanTime(updated));
+                }
+
+                if (alarmsEnabled) {
+                    triggerAlarm("SFL1 — CLOSED");
+                }
             }
+
             sfl1Closed = closed;
+        }
+
+        if (closed) {
+            if (issued != null) {
+                lastIssued.setText("Issued at: " + cleanTime(issued));
+            }
+
+            if (updated != null) {
+                lastUpdated.setText("Updated at: " + cleanTime(updated));
+            }
         }
     }
 
+    private String extractValue(String text, String patternText) {
+        Pattern pattern = Pattern.compile(
+                patternText,
+                Pattern.CASE_INSENSITIVE
+        );
+
+        Matcher matcher = pattern.matcher(text);
+
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
+
+        return null;
+    }
+
+    private String cleanTime(String value) {
+        String cleaned = value.trim();
+
+        if (cleaned.length() > 40) {
+            cleaned = cleaned.substring(0, 40);
+        }
+
+        return cleaned;
+    }
+
     private void checkState(WebView web, String site) {
+        if (web == null) return;
+
         web.evaluateJavascript(
-                "(function(){return document.body ? document.body.innerText : '';})()",
+                "(function(){"
+                + "return document.body ? "
+                + "document.body.innerText : '';"
+                + "})()",
                 value -> {
                     if (value == null) return;
+
                     processText(site, value);
                 }
         );
     }
 
-    private String now() {
-        return new SimpleDateFormat("HH:mm:ss", Locale.US).format(new Date());
-    }
-
     private void triggerAlarm(String message) {
         alarmActive = true;
+
         alarmStatus.setText("🔴 ALERTA: " + message);
         alarmStatus.setBackgroundColor(Color.RED);
 
-        findViewById(R.id.root).setBackgroundColor(Color.RED);
+        findViewById(R.id.root)
+                .setBackgroundColor(Color.RED);
 
         handler.removeCallbacks(alarmSound);
         handler.post(alarmSound);
@@ -211,15 +339,27 @@ public class MainActivity extends Activity {
             tone.stopTone();
         }
 
-        alarmStatus.setText(alarmsEnabled
-                ? "MONITOREANDO — Alertas activadas"
-                : "MONITOREANDO — Alertas desactivadas");
-
-        alarmStatus.setBackgroundColor(
-                alarmsEnabled ? Color.rgb(23, 107, 44) : Color.DKGRAY
+        alarmStatus.setText(
+                alarmsEnabled
+                        ? "MONITOREANDO — Alertas activadas"
+                        : "MONITOREANDO — Alertas desactivadas"
         );
 
-        findViewById(R.id.root).setBackgroundColor(Color.rgb(16, 16, 16));
+        alarmStatus.setBackgroundColor(
+                alarmsEnabled
+                        ? Color.rgb(23, 107, 44)
+                        : Color.DKGRAY
+        );
+
+        findViewById(R.id.root)
+                .setBackgroundColor(Color.rgb(16, 16, 16));
+    }
+
+    private String now() {
+        return new SimpleDateFormat(
+                "HH:mm:ss",
+                Locale.US
+        ).format(new Date());
     }
 
     @Override

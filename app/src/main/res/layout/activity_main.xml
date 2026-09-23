@@ -4,23 +4,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="6dp"
     android:background="#101010">
 
+    <!-- Encabezado -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="8dp">
 
         <TextView
-            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="⚡ Lightning Monitor"
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
+            android:textSize="23sp"
             android:textStyle="bold" />
 
         <Switch
@@ -30,101 +33,99 @@
             android:text="Alertas"
             android:textColor="#FFFFFF"
             android:checked="true" />
-
-        <Button
-            android:id="@+id/testButton"
-            android:layout_width="wrap_content"
-            android:layout_height="42dp"
-            android:text="PROBAR ALARMA"
-            android:textSize="11sp" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/testButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        android:text="🔊  PROBAR ALARMA"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/alarmStatus"
         android:layout_width="match_parent"
-        android:layout_height="34dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:gravity="center"
         android:text="MONITOREANDO — Alertas activadas"
         android:textColor="#FFFFFF"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:background="#176B2C" />
 
+    <!-- Pestañas -->
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/sfl8Tab"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="SFL8"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/sfl1Tab"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="SFL1"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Una sola estación visible -->
+    <WebView
+        android:id="@+id/webActive"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal">
+        android:background="#FFFFFF" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:padding="3dp">
+    <!-- Datos del último rayo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp"
+        android:background="#242424">
 
-            <TextView
-                android:id="@+id/sfl8Label"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="SFL8"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:background="#333333" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚡ ÚLTIMO RAYO"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-            <WebView
-                android:id="@+id/webSfl8"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+        <TextView
+            android:id="@+id/lastIssued"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Issued at: —"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/sfl8Last"
-                android:layout_width="match_parent"
-                android:layout_height="28dp"
-                android:gravity="center"
-                android:text="Último CLOSED: —"
-                android:textColor="#FFFFFF"
-                android:textSize="11sp"
-                android:background="#222222" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:padding="3dp">
-
-            <TextView
-                android:id="@+id/sfl1Label"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="SFL1"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:background="#333333" />
-
-            <WebView
-                android:id="@+id/webSfl1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/sfl1Last"
-                android:layout_width="match_parent"
-                android:layout_height="28dp"
-                android:gravity="center"
-                android:text="Último CLOSED: —"
-                android:textColor="#FFFFFF"
-                android:textSize="11sp"
-                android:background="#222222" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/lastUpdated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Updated at: —"
+            android:textColor="#BBBBBB"
+            android:textSize="13sp" />
     </LinearLayout>
 
 </LinearLayout>
