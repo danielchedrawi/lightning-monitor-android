@@ -8,6 +8,7 @@ import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -41,12 +42,12 @@ public class MainActivity extends Activity {
     private final Handler handler = new Handler();
     private ToneGenerator tone;
 
-    private final Runnable poller = new Runnable() {
+    private final Runnable fallbackPoller = new Runnable() {
         @Override
         public void run() {
             checkState(webSfl8, "SFL8");
             checkState(webSfl1, "SFL1");
-            handler.postDelayed(this, 5000);
+            handler.postDelayed(this, 30000);
         }
     };
 
@@ -95,7 +96,7 @@ public class MainActivity extends Activity {
         Button testButton = findViewById(R.id.testButton);
         testButton.setOnClickListener(v -> triggerAlarm("PRUEBA DE ALARMA"));
 
-        handler.postDelayed(poller, 8000);
+        handler.postDelayed(fallbackPoller, 8000);
     }
 
     private void configureWebView(WebView w, String url) {
@@ -109,8 +110,72 @@ public class MainActivity extends Activity {
         st.setTextZoom(85);
         w.setInitialScale(85);
 
-        w.setWebViewClient(new WebViewClient());
+        String site = url.contains("/SFL8") ? "SFL8" : "SFL1";
+        w.addJavascriptInterface(new KeplerBridge(site), "Android");
+
+        w.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String pageUrl) {
+                installRealtimeObserver(view, site);
+                checkState(view, site);
+            }
+        });
+
         w.loadUrl(url);
+    }
+
+    private void installRealtimeObserver(WebView web, String site) {
+        String js = "(function(){"
+                + "if(window.__lightningObserver){window.__lightningObserver.disconnect();}"
+                + "var target=document.body||document.documentElement;"
+                + "if(!target)return;"
+                + "var timer;"
+                + "function send(){"
+                + "clearTimeout(timer);"
+                + "timer=setTimeout(function(){"
+                + "try{if(window.Android){window.Android.state('" + site + "',document.body?document.body.innerText:'');}}catch(e){}"
+                + "},250);"
+                + "}"
+                + "window.__lightningObserver=new MutationObserver(function(){send();});"
+                + "window.__lightningObserver.observe(target,{subtree:true,childList:true,characterData:true,attributes:true});"
+                + "send();"
+                + "return 'ok';})()";
+
+        web.evaluateJavascript(js, value -> {});
+    }
+
+    private class KeplerBridge {
+        private final String site;
+
+        KeplerBridge(String site) {
+            this.site = site;
+        }
+
+        @JavascriptInterface
+        public void state(String ignoredSite, String text) {
+            runOnUiThread(() -> processText(site, text));
+        }
+    }
+
+    private void processText(String site, String rawText) {
+        if (rawText == null) return;
+
+        String text = rawText.toUpperCase(Locale.US);
+        boolean closed = text.contains("CLOSED");
+
+        if (site.equals("SFL8")) {
+            if (closed && !sfl8Closed) {
+                sfl8Last.setText("Último CLOSED: " + now());
+                if (alarmsEnabled) triggerAlarm("SFL8 — CLOSED");
+            }
+            sfl8Closed = closed;
+        } else {
+            if (closed && !sfl1Closed) {
+                sfl1Last.setText("Último CLOSED: " + now());
+                if (alarmsEnabled) triggerAlarm("SFL1 — CLOSED");
+            }
+            sfl1Closed = closed;
+        }
     }
 
     private void checkState(WebView web, String site) {
@@ -118,27 +183,7 @@ public class MainActivity extends Activity {
                 "(function(){return document.body ? document.body.innerText : '';})()",
                 value -> {
                     if (value == null) return;
-
-                    String text = value
-                            .replace("\\n", " ")
-                            .replace("\\\"", "\"")
-                            .toUpperCase(Locale.US);
-
-                    boolean closed = text.contains("CLOSED");
-
-                    if (site.equals("SFL8")) {
-                        if (closed && !sfl8Closed) {
-                            sfl8Last.setText("Último CLOSED: " + now());
-                            if (alarmsEnabled) triggerAlarm("SFL8 — CLOSED");
-                        }
-                        sfl8Closed = closed;
-                    } else {
-                        if (closed && !sfl1Closed) {
-                            sfl1Last.setText("Último CLOSED: " + now());
-                            if (alarmsEnabled) triggerAlarm("SFL1 — CLOSED");
-                        }
-                        sfl1Closed = closed;
-                    }
+                    processText(site, value);
                 }
         );
     }
