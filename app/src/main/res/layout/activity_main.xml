@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:background="#10131A"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <TextView android:id="@+id/title" android:text="⚡ Lightning Monitor"
+        android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold"
+        android:padding="14dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/status" android:text="Conectando con Kepler51..."
+        android:textColor="#FFFFFF" android:padding="10dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1">
+        <TextView android:id="@+id/sfl8" android:text="SFL8 — CONECTANDO"
+            android:textColor="#FFFFFF" android:textSize="16sp" android:padding="8dp"
+            android:background="#293140" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <WebView android:id="@+id/web8" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+        <TextView android:id="@+id/sfl1" android:text="SFL1 — CONECTANDO"
+            android:textColor="#FFFFFF" android:textSize="16sp" android:padding="8dp"
+            android:background="#293140" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <WebView android:id="@+id/web1" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+    </LinearLayout>
+    <TextView android:id="@+id/event" android:text="Último CLOSED: —"
+        android:textColor="#FFFFFF" android:padding="10dp"
+        android:background="#1A1F29" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
