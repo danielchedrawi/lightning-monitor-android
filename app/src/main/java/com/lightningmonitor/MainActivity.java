@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
         sfl8Button = findViewById(R.id.sfl8Button);
         sfl1Button = findViewById(R.id.sfl1Button);
         alarmStatus = findViewById(R.id.alarmStatus);
-        Button testAlarmButton = findViewById(R.id.testAlarmButton);
+        Button stopAlarmButton = findViewById(R.id.stopAlarmButton);
 
         configureWebView();
 
@@ -84,7 +84,22 @@ public class MainActivity extends Activity {
 
         sfl8Button.setOnClickListener(v -> loadStation("SFL8"));
         sfl1Button.setOnClickListener(v -> loadStation("SFL1"));
-        testAlarmButton.setOnClickListener(v -> triggerAlarm());
+        stopAlarmButton.setOnClickListener(v -> stopAlarm());
+        stopAlarmButton.setText("🔕");
+        stopAlarmButton.setTextSize(18);
+        stopAlarmButton.setTextColor(Color.WHITE);
+        stopAlarmButton.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(Color.rgb(55, 59, 66))
+        );
+
+        sfl8Button.setTextSize(17);
+        sfl8Button.setTextColor(Color.WHITE);
+        sfl8Button.setAllCaps(false);
+
+        sfl1Button.setTextSize(17);
+        sfl1Button.setTextColor(Color.WHITE);
+        sfl1Button.setAllCaps(false);
+
 
         loadStation("SFL8");
 
