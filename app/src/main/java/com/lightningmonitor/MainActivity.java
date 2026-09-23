@@ -36,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
         st.setDomStorageEnabled(true);
         st.setDatabaseEnabled(true);
         st.setLoadsImagesAutomatically(true);
+        st.setLoadWithOverviewMode(true);
+        st.setUseWideViewPort(true);
+        st.setTextZoom(75);
+        w.setInitialScale(75);
         w.setWebViewClient(new WebViewClient());
         w.loadUrl(url);
     }
