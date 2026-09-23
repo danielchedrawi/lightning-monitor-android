@@ -110,7 +110,7 @@ public class MainActivity extends Activity {
         prevButton.setOnClickListener(v -> switchStation("SFL8"));
         nextButton.setOnClickListener(v -> switchStation("SFL1"));
 
-        loadStation("SFL8");
+        webActive.loadUrl(SFL8_URL);
         updateStationNavigation();
 
         handler.postDelayed(fallbackPoller, 8000);
