@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
         // sin aplicar un zoom artificial.
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
-        settings.setTextZoom(100);
+        settings.setTextZoom(120);
         settings.setSupportZoom(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
@@ -116,9 +116,9 @@ public class MainActivity extends Activity {
                 String desktopCanvas = "(function(){"
                         + "var m=document.querySelector('meta[name=viewport]');"
                         + "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}"
-                        + "m.setAttribute('content','width=700, initial-scale=1, maximum-scale=1, user-scalable=no');"
+                        + "m.setAttribute('content','width=1200, initial-scale=1, maximum-scale=1, user-scalable=no');"
                         + "function fit(){"
-                        + "var w=700;"
+                        + "var w=1200;"
                         + "var screenW=screen.width||window.innerWidth;"
                         + "var scale=screenW/w;"
                         + "document.documentElement.style.width=w+'px';"
