@@ -61,6 +61,14 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.activity_main);
 
+        android.view.View root = findViewById(R.id.root);
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
+            int top = insets.getSystemWindowInsetTop();
+            int bottom = insets.getSystemWindowInsetBottom();
+            v.setPadding(0, top, 0, bottom);
+            return insets;
+        });
+
         webView = findViewById(R.id.webView);
         sfl8Button = findViewById(R.id.sfl8Button);
         sfl1Button = findViewById(R.id.sfl1Button);
@@ -93,11 +101,9 @@ public class MainActivity extends Activity {
 
         // Dejamos que Kepler51 determine su propio tamaño,
         // sin aplicar un zoom artificial.
-        settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(false);
+        settings.setLoadWithOverviewMode(false);
         settings.setTextZoom(100);
-
-        webView.setInitialScale(0);
 
         webView.setWebViewClient(new WebViewClient());
     }
