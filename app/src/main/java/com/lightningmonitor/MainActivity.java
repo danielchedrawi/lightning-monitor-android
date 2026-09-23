@@ -134,7 +134,7 @@ public class MainActivity extends Activity {
         st.setUseWideViewPort(true);
         st.setTextZoom(85);
 
-        webActive.setInitialScale(85);
+        webActive.setInitialScale(60);
 
         webActive.addJavascriptInterface(
                 new KeplerBridge(),
