@@ -108,7 +108,34 @@ public class MainActivity extends Activity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+
+                String desktopCanvas = "(function(){"
+                        + "var m=document.querySelector('meta[name=viewport]');"
+                        + "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}"
+                        + "m.setAttribute('content','width=1200, initial-scale=1, maximum-scale=1, user-scalable=no');"
+                        + "function fit(){"
+                        + "var w=1200;"
+                        + "var screenW=screen.width||window.innerWidth;"
+                        + "var scale=screenW/w;"
+                        + "document.documentElement.style.width=w+'px';"
+                        + "document.documentElement.style.overflowX='hidden';"
+                        + "document.body.style.width=w+'px';"
+                        + "document.body.style.margin='0';"
+                        + "document.body.style.zoom=scale;"
+                        + "}"
+                        + "fit();"
+                        + "setTimeout(fit,1000);"
+                        + "setTimeout(fit,3000);"
+                        + "setTimeout(fit,6000);"
+                        + "})();";
+
+                view.evaluateJavascript(desktopCanvas, null);
+            }
+        });
         webView.setInitialScale(60);
     }
 
