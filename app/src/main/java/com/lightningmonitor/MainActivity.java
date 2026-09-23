@@ -40,7 +40,17 @@ public class MainActivity extends AppCompatActivity {
         st.setUseWideViewPort(true);
         st.setTextZoom(75);
         w.setInitialScale(75);
-        w.setWebViewClient(new WebViewClient());
+        w.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                view.evaluateJavascript(
+                    "(function(){document.documentElement.style.zoom='0.65';" +
+                    "document.body.style.zoom='0.65';})();",
+                    null
+                );
+            }
+        });
         w.loadUrl(url);
     }
 
