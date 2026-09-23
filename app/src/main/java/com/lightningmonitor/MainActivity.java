@@ -101,11 +101,15 @@ public class MainActivity extends Activity {
 
         // Dejamos que Kepler51 determine su propio tamaño,
         // sin aplicar un zoom artificial.
-        settings.setUseWideViewPort(false);
-        settings.setLoadWithOverviewMode(false);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
         settings.setTextZoom(100);
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
 
         webView.setWebViewClient(new WebViewClient());
+        webView.setInitialScale(60);
     }
 
     private void loadStation(String station) {
