@@ -12,6 +12,8 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
@@ -31,6 +33,37 @@ public class MainActivity extends Activity {
 
     private boolean currentClosed = false;
     private boolean alarmActive = false;
+    private TextView lastEventText;
+    private TextView updateText;
+    private TextView connectionText;
+
+    private String currentStation = "SFL8";
+    private String sfl8Indicator = "⚪";
+    private String sfl1Indicator = "⚪";
+    private String lastEventSfl8 = "—";
+    private String lastEventSfl1 = "—";
+    private long lastUpdateAt = 0;
+    private static final Pattern DISTANCE_PATTERN = Pattern.compile("DISTANCE\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*MI");
+    private static final Pattern ISSUED_PATTERN = Pattern.compile("ISSUED\\s*AT\\s*:\\s*([0-9:]+\\s*[AP]M)");
+
+
+    private final Runnable updateTicker = new Runnable() {
+        @Override
+        public void run() {
+            if (updateText != null && lastUpdateAt > 0) {
+                long seconds = Math.max(0, (System.currentTimeMillis() - lastUpdateAt) / 1000);
+                updateText.setText("🔄 Actualizado: hace " + seconds + " s");
+                if (connectionText != null) {
+                    if (seconds <= 15) {
+                        connectionText.setText("🟢 Conectado");
+                    } else {
+                        connectionText.setText("🔴 Sin conexión");
+                    }
+                }
+            }
+            handler.postDelayed(this, 1000);
+        }
+    };
 
     private final Runnable poller = new Runnable() {
         @Override
@@ -73,6 +106,9 @@ public class MainActivity extends Activity {
         sfl8Button = findViewById(R.id.sfl8Button);
         sfl1Button = findViewById(R.id.sfl1Button);
         alarmStatus = findViewById(R.id.alarmStatus);
+        lastEventText = findViewById(R.id.lastEventText);
+        updateText = findViewById(R.id.updateText);
+        connectionText = findViewById(R.id.connectionText);
         Button stopAlarmButton = findViewById(R.id.stopAlarmButton);
 
         configureWebView();
@@ -104,6 +140,7 @@ public class MainActivity extends Activity {
         loadStation("SFL8");
 
         handler.postDelayed(poller, 5000);
+        handler.post(updateTicker);
     }
 
     private void configureWebView() {
@@ -159,6 +196,7 @@ public class MainActivity extends Activity {
     }
 
     private void loadStation(String station) {
+        currentStation = station;
         currentClosed = false;
         stopAlarm();
 
@@ -183,8 +221,22 @@ public class MainActivity extends Activity {
             webView.loadUrl(SFL8_URL);
         }
 
+        updateStationIndicator();
+        updateLastEventLabel();
+
         alarmStatus.setText("🔔");
         alarmStatus.setBackgroundColor(Color.rgb(37, 40, 45));
+    }
+
+    private void updateStationIndicator() {
+        if (sfl8Button != null) sfl8Button.setText("SFL8  " + sfl8Indicator);
+        if (sfl1Button != null) sfl1Button.setText("SFL1  " + sfl1Indicator);
+    }
+
+    private void updateLastEventLabel() {
+        if (lastEventText == null) return;
+        String event = "SFL1".equals(currentStation) ? lastEventSfl1 : lastEventSfl8;
+        lastEventText.setText("⚡ Último evento: " + event);
     }
 
     private void checkKeplerState() {
@@ -195,39 +247,86 @@ public class MainActivity extends Activity {
         webView.evaluateJavascript(
                 "(function(){return document.body ? document.body.innerText : '';})()",
                 value -> {
-
                     if (value == null) {
                         return;
-                    }
+                   }
+
+                     lastUpdateAt = System.currentTimeMillis();
+
+                    if (connectionText != null) {
+                          connectionText.setText("❍ Conectado");
+                   }
 
                     String text = value
-                            .replace("\\n", " ")
-                            .replace("\\\"", "\"")
-                            .toUpperCase();
+                          .replace("\n", " ")
+                          .replace("\\" , "\")
+                          .toUpperCase();
 
                     boolean closed = text.contains("CLOSED")
                             || text.contains("CERRADO");
 
-                    if (closed && !currentClosed) {
+                    boolean warning = text.contains("WARNING")
+                             || text.contains("WARN");
+
+
+                     if (closed && !currentClosed) {
                         currentClosed = true;
-                        triggerAlarm();
+
+                          Matcher distanceMatcher = DISTANCE_PATTERN.matcher(text);
+                          Matcher issuedMatcher = ISSUED_PATTERN.matcher(text);
+
+                          String distance = distanceMatcher.find()
+                                ? distanceMatcher.group(1) + "mi"
+                               : "distancia no disponible";
+
+                          String issued = issuedMatcher.find()
+                                ? issuedMatcher.group(1)
+                                 : hora no disponible";
+
+                          String event = issued + " ‗ " + distance;
+
+                         if ("SFL11".equals(currentStation)) {
+                               lastEventSFL1 = event;
+                         } else {
+                                lastEventSFL8= event;
+                           }
+
+                           updateLastEventLabel();
+                           triggerAlarm();
+                    } else if (!closed) {
+                          currentClosed = false;
                     }
 
-                    if (!closed) {
-                        currentClosed = false;
-                    }
+                    if ("SFL11".equals(currentStation)) {
+                         if (closed) {
+                               sfl1Indicator = "🍬";
+                           } else if (warning) {
+                                sfl1Indicator = "🍂";
+                           } else {
+                                sfl1Indicator = "<👰";
+                           }
+                        } else {
+                         if (closed) {
+                               sfl8Indicator = "🍬";
+                           } else if (warning) {
+                                sfl8Indicator = "🍂";
+                           } else {
+                                sfl8Indicator = "<👰";
+                           }
+                        }
 
-                    if (closed) {
-                        alarmStatus.setText("⚠️");
-                        alarmStatus.setBackgroundColor(Color.rgb(190, 35, 35));
-                    } else {
-                        alarmStatus.setText("🔔");
+                        updateStationIndicator();
+
+                        if (closed) {
+                            alarmStatus.setText("⟇️");
+                          alarmStatus.setBackgroundColor(Color.rgb(190, 35, 35));
+                        } else {
+                          alarmStatus.setText("🐼");
                         alarmStatus.setBackgroundColor(Color.rgb(37, 40, 45));
-                    }
+                        }
                 }
         );
     }
-
     private void triggerAlarm() {
         if (alarmActive) {
             return;
