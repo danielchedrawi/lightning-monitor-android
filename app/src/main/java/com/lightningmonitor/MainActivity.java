@@ -40,8 +40,8 @@ public class MainActivity extends Activity {
     private String currentStation = "SFL8";
     private String lastEventSFL8 = "—";
     private String lastEventSFL1 = "—";
-    private String sfl8Indicator = "⚪";
-    private String sfl1Indicator = "⚪";
+    private String sfl8Indicator = "OPEN";
+    private String sfl1Indicator = "OPEN";
     private long lastUpdateAt = 0;
     private static final Pattern DISTANCE_PATTERN = Pattern.compile("DISTANCE\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*MI");
     private static final Pattern ISSUED_PATTERN = Pattern.compile("ISSUED\\s*AT\\s*:\\s*([0-9:]+\\s*[AP]M)");
@@ -233,8 +233,10 @@ public class MainActivity extends Activity {
     }
 
     private void updateStationIndicator() {
-        if (sfl8Button != null) sfl8Button.setText("SFL8  " + sfl8Indicator);
-        if (sfl1Button != null) sfl1Button.setText("SFL1  " + sfl1Indicator);
+        sfl8Button.setText(android.text.Html.fromHtml(
+                "SFL8  <font color='#00C853'>●</font>"));
+        sfl1Button.setText(android.text.Html.fromHtml(
+                "SFL1  <font color='#00C853'>●</font>"));
     }
 
     private void updateLastEventLabel() {
