@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+k*ō<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
@@ -6,6 +6,39 @@
     android:orientation="vertical"
     android:background="#101114"
     android:fitsSystemWindows="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:background="#07131C">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="⚡ LIGHTNING MONITOR"
+                android:textColor="#FFFFFF"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="42dp"
+                android:gravity="center"
+                android:text="● LIVE
+REAL-TIME"
+                android:textColor="#00E676"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="#10231D" />
+
+        </LinearLayout>
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
