@@ -207,29 +207,55 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                if (showingLightningMap) {
+                if (showingLightningMap && url != null && url.contains("lightningtracker.app")) {
                     final double lat = "SFL1".equals(currentStation) ? SFL1_LAT : SFL8_LAT;
                     final double lon = "SFL1".equals(currentStation) ? SFL1_LON : SFL8_LON;
                     String mapOnly = "(function(){"
-                            + "document.documentElement.style.background='#0b1015';"
-                            + "document.body.style.background='#0b1015';"
+                            + "document.documentElement.style.background='#000';"
+                            + "document.body.style.background='#000';"
                             + "document.body.style.margin='0';"
-                            + "document.body.style.overflow='hidden';"
                             + "document.body.style.padding='0';"
-                            + "var candidates=Array.from(document.querySelectorAll('[class*=map],[id*=map],.leaflet-container,canvas'));"
-                            + "candidates.forEach(function(e){e.style.visibility='visible';});"
-                            + "var mapEl=candidates.sort(function(a,b){return b.getBoundingClientRect().width*b.getBoundingClientRect().height-a.getBoundingClientRect().width*a.getBoundingClientRect().height;})[0];"
-                            + "if(mapEl){var keep=mapEl;while(keep.parentElement&&keep.parentElement!==document.body)keep=keep.parentElement;Array.from(document.body.children).forEach(function(ch){if(ch!==keep)ch.style.display='none';});keep.style.display='block';keep.style.position='fixed';keep.style.inset='0';keep.style.width='100vw';keep.style.height='100vh';}"
-                            + "var map=null;"
-                            + "if(window.map && typeof window.map.setView==='function') map=window.map;"
-                            + "if(window.__map && typeof window.__map.setView==='function') map=window.__map;"
-                            + "if(map){try{map.setView(["+lat+","+lon+"],12);if(window.L){L.marker(["+lat+","+lon+"]).addTo(map);L.circle(["+lat+","+lon+"],{radius:9656,color:'#FFD400',weight:3,fill:false}).addTo(map);}}catch(e){}}"
+                            + "document.body.style.overflow='hidden';"
+                            + "function findMap(){"
+                            + "var best=null,bestArea=0;"
+                            + "var ifr=Array.from(document.querySelectorAll('iframe'));"
+                            + "ifr.forEach(function(e){var r=e.getBoundingClientRect(),a=r.width*r.height;if(a>bestArea){best=e;bestArea=a;}});"
+                            + "if(best&&bestArea>40000)return best;"
+                            + "var selectors=['.leaflet-container','.maplibregl-map','.mapboxgl-map','.ol-viewport','[class*=map-container]','[class*=mapContainer]','[id*=map-container]','[id*=mapContainer]','[class*=interactive-map]','[class*=lightning-map]','[id*=lightning-map]','canvas','svg'];"
+                            + "selectors.forEach(function(sel){Array.from(document.querySelectorAll(sel)).forEach(function(e){var r=e.getBoundingClientRect(),a=r.width*r.height;if(a>bestArea){best=e;bestArea=a;}});});"
+                            + "return best;"
+                            + "}"
+                            + "function mapObject(){"
+                            + "var found=null;"
+                            + "try{for(var k in window){if(k==='window'||k==='document')continue;var v=window[k];if(v&&typeof v.setView==='function'&&typeof v.getCenter==='function'){found=v;break;}if(v&&typeof v.setCenter==='function'&&(typeof v.setZoom==='function'||typeof v.flyTo==='function')){found=v;break;}}}catch(e){}"
+                            + "return found;"
+                            + "}"
+                            + "function clean(){"
+                            + "var mapEl=findMap();"
+                            + "if(!mapEl)return false;"
+                            + "var keep=mapEl;"
+                            + "if(keep.tagName==='CANVAS'||keep.tagName==='SVG'){while(keep.parentElement&&keep.parentElement!==document.body){var pr=keep.parentElement,r=pr.getBoundingClientRect();if(r.width>250&&r.height>200)keep=pr;else break;}}"
+                            + "if(keep.tagName==='IFRAME'){keep.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;border:0;margin:0;padding:0;z-index:1;display:block;';}"
+                            + "else{keep.style.cssText+=';position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;margin:0!important;padding:0!important;z-index:1!important;display:block!important;';}"
+                            + "Array.from(document.body.children).forEach(function(ch){if(ch!==keep&&ch.id!=='lm-station-overlay')ch.style.display='none';});"
+                            + "var map=mapObject();"
+                            + "var lat="+lat+",lon="+lon+";"
+                            + "try{if(map){if(typeof map.setView==='function')map.setView([lat,lon],12);else if(typeof map.setCenter==='function')map.setCenter([lon,lat]);if(typeof map.setZoom==='function')map.setZoom(12);}}catch(e){}"
                             + "var overlay=document.getElementById('lm-station-overlay');"
-                            + "if(!overlay){overlay=document.createElement('div');overlay.id='lm-station-overlay';overlay.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:2147483647;';document.body.appendChild(overlay);}"
-                            + "overlay.innerHTML='<div style=\"position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid #FFD400;border-radius:50%;box-sizing:border-box;\"></div><div style=\"position:absolute;left:50%;top:50%;width:16px;height:16px;background:#1976FF;border:3px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 8px #1976FF;\"></div>';"
+                            + "if(!overlay){overlay=document.createElement('div');overlay.id='lm-station-overlay';document.body.appendChild(overlay);}"
+                            + "overlay.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:2147483647;';"
+                            + "overlay.innerHTML='<div style=\"position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210px;height:210px;border:3px solid #FFD400;border-radius:50%;box-sizing:border-box;\"></div><div style=\"position:absolute;left:50%;top:50%;width:16px;height:16px;background:#1976FF;border:3px solid #fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 10px rgba(25,118,255,.9);\"></div>';"
+                            + "return true;"
+                            + "}"
+                            + "var tries=0;var timer=setInterval(function(){tries++;if(clean()||tries>20)clearInterval(timer);},750);"
+                            + "setTimeout(clean,300);setTimeout(clean,1500);setTimeout(clean,3000);setTimeout(clean,6000);setTimeout(clean,10000);"
                             + "})();";
                     view.evaluateJavascript(mapOnly, null);
                     view.setBackgroundColor(Color.BLACK);
+                    return;
+                }
+
+                if (url == null || !url.startsWith("https://us.kepler51.com/")) {
                     return;
                 }
 
@@ -290,9 +316,17 @@ public class MainActivity extends Activity {
             sfl1Button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(48, 52, 58)));
         }
 
-        setMapButton(true);
-        monitorWebView.loadUrl("SFL1".equals(station) ? SFL1_URL : SFL8_URL);
-        showLightningMapForCurrentStation();
+        // Switching stations always returns to that station's Kepler view.
+        // Explicitly cancel the map page first so a previous map load/callback
+        // cannot leave the visible WebView on Lightning Tracker.
+        setMapButton(false);
+        webView.stopLoading();
+        webView.setVisibility(android.view.View.VISIBLE);
+        webView.setBackgroundColor(Color.BLACK);
+        String stationUrl = "SFL1".equals(station) ? SFL1_URL : SFL8_URL;
+        monitorWebView.stopLoading();
+        monitorWebView.loadUrl(stationUrl);
+        webView.loadUrl(stationUrl);
         updateStationIndicator();
         updateLastEventLabel();
         alarmStatus.setText("🔔");
@@ -300,9 +334,12 @@ public class MainActivity extends Activity {
     }
 
     private void showLightningMapForCurrentStation() {
-        showingLightningMap = true;
         stopAlarm();
+        showingLightningMap = true;
         setMapButton(true);
+        webView.stopLoading();
+        webView.setVisibility(android.view.View.VISIBLE);
+        webView.setBackgroundColor(Color.BLACK);
         webView.loadUrl("https://lightningtracker.app/lightning-map/florida/orlando/");
     }
 
