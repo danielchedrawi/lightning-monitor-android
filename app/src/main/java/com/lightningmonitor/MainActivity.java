@@ -108,6 +108,10 @@ public class MainActivity extends Activity {
         alarmStatus = findViewById(R.id.alarmStatus);
         lastEventText = findViewById(R.id.lastEventText);
         updateText = findViewById(R.id.updateText);
+        updateText.setOnClickListener(v -> {
+            lastUpdateAt = System.currentTimeMillis();
+            webView.reload();
+        });
         connectionText = findViewById(R.id.connectionText);
         Button stopAlarmButton = findViewById(R.id.stopAlarmButton);
 
@@ -301,7 +305,7 @@ public class MainActivity extends Activity {
                          if (closed) {
                                sfl1Indicator = "🍬";
                            } else if (warning) {
-                                sfl1Indicator = "🍂";
+                                sfl1Indicator = "🟡";
                            } else {
                                 sfl1Indicator = "<👰";
                            }
@@ -309,7 +313,7 @@ public class MainActivity extends Activity {
                          if (closed) {
                                sfl8Indicator = "🍬";
                            } else if (warning) {
-                                sfl8Indicator = "🍂";
+                                sfl8Indicator = "🟡";
                            } else {
                                 sfl8Indicator = "<👰";
                            }
