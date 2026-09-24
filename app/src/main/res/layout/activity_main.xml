@@ -3,135 +3,176 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#101114"
+    android:background="#0B1015"
     android:fitsSystemWindows="true">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:background="#07131C">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:text="⚡ LIGHTNING MONITOR"
-                android:textColor="#FFFFFF"
-                android:textSize="19sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="100dp"
-                android:layout_height="42dp"
-                android:gravity="center"
-                android:text="● LIVE
-REAL-TIME"
-                android:textColor="#00E676"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:background="#10231D" />
-
-        </LinearLayout>
-
-
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="54dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:background="#17191D">
-
-        <Button
-            android:id="@+id/sfl8Button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="SFL8"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#30343A" />
-
-        <Button
-            android:id="@+id/sfl1Button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:text="SFL1"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#30343A" />
-
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="#07131C">
         <TextView
-            android:id="@+id/alarmStatus"
-            android:layout_width="42dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
-            android:gravity="center"
-            android:text="🔔"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="⚡ LIGHTNING MONITOR"
+            android:textColor="#FFFFFF"
             android:textSize="18sp"
-            android:background="#25282D" />
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="96dp"
+            android:layout_height="38dp"
+            android:gravity="center"
+            android:text="● LIVE"
+            android:textColor="#00E676"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:background="#10231D" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="92dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:background="#15181D">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingEnd="5dp">
+            <Button
+                android:id="@+id/sfl8Button"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="SFL8  ●"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:allCaps="false"
+                android:backgroundTint="#3770B7" />
+            <Button
+                android:id="@+id/sfl8MapButton"
+                android:layout_width="52dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="4dp"
+                android:text="⚡"
+                android:textSize="17sp"
+                android:textColor="#FFFFFF"
+                android:contentDescription="SFL8 Lightning Map"
+                android:backgroundTint="#30343A" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingStart="5dp">
+            <Button
+                android:id="@+id/sfl1Button"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="SFL1  ●"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:allCaps="false"
+                android:backgroundTint="#30343A" />
+            <Button
+                android:id="@+id/sfl1MapButton"
+                android:layout_width="52dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="4dp"
+                android:text="⚡"
+                android:textSize="17sp"
+                android:textColor="#FFFFFF"
+                android:contentDescription="SFL1 Lightning Map"
+                android:backgroundTint="#30343A" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/stopAlarmButton"
             android:layout_width="42dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
             android:text="🔕"
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:backgroundTint="#25282D" />
-
     </LinearLayout>
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="38dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:background="#101114"><TextView android:id="@+id/lastEventText" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:text="⚡ Último evento: —" android:textColor="#FFFFFF" android:textSize="12sp"/><TextView android:id="@+id/updateText" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:text="🔄 Actualizado: —" android:textColor="#FFFFFF" android:textSize="12sp"/><TextView android:id="@+id/connectionText" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center_vertical" android:text="🟢 Conectado" android:textColor="#FFFFFF" android:textSize="12sp"/></LinearLayout>
     <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:orientation="horizontal"
-    android:padding="6dp"
-    android:background="#07131C">
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:background="#101114">
+        <TextView
+            android:id="@+id/lastEventText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="⚡ Último evento: —"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+        <TextView
+            android:id="@+id/updateText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="🔄 Actualizado: —"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+        <TextView
+            android:id="@+id/connectionText"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:text="🟢 Conectado"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/keplerTab"
+    <TextView
+        android:id="@+id/alarmStatus"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:text="Kepler"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#0878C9" />
+        android:layout_height="1dp"
+        android:visibility="gone"
+        android:text="🔔" />
 
     <Button
         android:id="@+id/lightningMapTab"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:layout_marginStart="6dp"
-        android:text="Lightning Map"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#172B3A" />
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone" />
 
-</LinearLayout>
+    <WebView
+        android:id="@+id/monitorWebView"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:alpha="0.01"
+        android:importantForAccessibility="no" />
 
-<WebView
+    <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#FFFFFF" />
+        android:background="#000000" />
 
 </LinearLayout>
