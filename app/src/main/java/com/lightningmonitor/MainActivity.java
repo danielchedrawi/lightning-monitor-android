@@ -27,6 +27,9 @@ public class MainActivity extends Activity {
     private Button sfl8Button;
     private Button sfl1Button;
     private TextView alarmStatus;
+    private Button keplerTab;
+    private Button lightningMapTab;
+    private boolean showingLightningMap = false;
 
     private final Handler handler = new Handler();
     private ToneGenerator tone;
@@ -114,6 +117,8 @@ public class MainActivity extends Activity {
         });
         connectionText = findViewById(R.id.connectionText);
         Button stopAlarmButton = findViewById(R.id.stopAlarmButton);
+        keplerTab = findViewById(R.id.keplerTab);
+        lightningMapTab = findViewById(R.id.lightningMapTab);
 
         configureWebView();
 
@@ -125,6 +130,20 @@ public class MainActivity extends Activity {
         sfl8Button.setOnClickListener(v -> loadStation("SFL8"));
         sfl1Button.setOnClickListener(v -> loadStation("SFL1"));
         stopAlarmButton.setOnClickListener(v -> stopAlarm());
+
+        keplerTab.setOnClickListener(v -> {
+            showingLightningMap = false;
+            loadStation(currentStation);
+            keplerTab.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(55, 105, 175)));
+            lightningMapTab.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(48, 52, 58)));
+        });
+
+        lightningMapTab.setOnClickListener(v -> {
+            showingLightningMap = true;
+            webView.loadUrl("https://lightningtracker.app/lightning-map/florida/orlando/");
+            lightningMapTab.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(55, 105, 175)));
+            keplerTab.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(48, 52, 58)));
+        });
         stopAlarmButton.setText("🔕");
         stopAlarmButton.setTextSize(18);
         stopAlarmButton.setTextColor(Color.WHITE);
@@ -246,6 +265,9 @@ public class MainActivity extends Activity {
     }
 
     private void checkKeplerState() {
+        if (showingLightningMap) {
+            return;
+        }
         if (webView == null) {
             return;
         }
