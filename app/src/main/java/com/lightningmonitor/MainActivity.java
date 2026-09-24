@@ -38,8 +38,8 @@ public class MainActivity extends Activity {
     private TextView connectionText;
 
     private String currentStation = "SFL8";
-    private String lastEventSfl8 = "—";
-    private String lastEventSfl1 = "—";
+    private String lastEventSFL8 = "—";
+    private String lastEventSFL1 = "—";
     private String sfl8Indicator = "⚪";
     private String sfl1Indicator = "⚪";
     private long lastUpdateAt = 0;
@@ -235,7 +235,7 @@ public class MainActivity extends Activity {
 
     private void updateLastEventLabel() {
         if (lastEventText == null) return;
-        String event = "SFL1".equals(currentStation) ? lastEventSfl1 : lastEventSfl8;
+        String event = "SFL1".equals(currentStation) ? lastEventSFL1 : lastEventSFL8;
         lastEventText.setText("⚡ Último evento: " + event);
     }
 
