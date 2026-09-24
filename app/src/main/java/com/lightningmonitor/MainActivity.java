@@ -259,7 +259,7 @@ public class MainActivity extends Activity {
 
                     String text = value
                           .replace("\\n", " ")
-                            .replace("\\"", """)
+                            
                           .toUpperCase();
 
                     boolean closed = text.contains("CLOSED")
@@ -281,7 +281,7 @@ public class MainActivity extends Activity {
 
                           String issued = issuedMatcher.find()
                                 ? issuedMatcher.group(1)
-                                 : hora no disponible";
+                                 : "hora no disponible";
 
                           String event = issued + " ‗ " + distance;
 
