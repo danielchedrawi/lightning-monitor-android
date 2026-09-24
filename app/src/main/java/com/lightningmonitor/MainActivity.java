@@ -258,8 +258,8 @@ public class MainActivity extends Activity {
                    }
 
                     String text = value
-                          .replace("\n", " ")
-                          .replace("\\" , "\")
+                          .replace("\\n", " ")
+                            .replace("\\"", """)
                           .toUpperCase();
 
                     boolean closed = text.contains("CLOSED")
