@@ -38,10 +38,10 @@ public class MainActivity extends Activity {
     private TextView connectionText;
 
     private String currentStation = "SFL8";
-    private String sfl8Indicator = "⚪";
-    private String sfl1Indicator = "⚪";
     private String lastEventSfl8 = "—";
     private String lastEventSfl1 = "—";
+    private String sfl8Indicator = "⚪";
+    private String sfl1Indicator = "⚪";
     private long lastUpdateAt = 0;
     private static final Pattern DISTANCE_PATTERN = Pattern.compile("DISTANCE\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)\\s*MI");
     private static final Pattern ISSUED_PATTERN = Pattern.compile("ISSUED\\s*AT\\s*:\\s*([0-9:]+\\s*[AP]M)");
